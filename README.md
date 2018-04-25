@@ -42,9 +42,9 @@ python -mdllhook "C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroRd32
 Console output:
 ```text
 [+] Opened a handle to pid: 24308
-[*] Found Python library at: C:\Users\cos\AppData\Local\Programs\Python\Python36-32\python36.dll
+[*] Found Python library at: C:\Users\example\AppData\Local\Programs\Python\Python36-32\python36.dll
 [*] Injecting Python into the process...
-[+] Loaded C:\Users\cos\AppData\Local\Programs\Python\Python36-32\python36.dll with handle 0x69ee0000
+[+] Loaded C:\Users\example\AppData\Local\Programs\Python\Python36-32\python36.dll with handle 0x69ee0000
 [*] Resolved addresses:
   - Py_InitializeEx:    0x6a061cc0
   - PyRun_SimpleString: 0x6a07b1c0
