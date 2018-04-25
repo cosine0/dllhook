@@ -31,15 +31,32 @@ import dllhook
 @dllhook.hook_dll('Kernel32.dll', b'CreateProcessW')
 def see_process(arg1):
     if arg1 != 0:
-        print(ctypes.wstring_at(arg1))
+        print("<hooked> ", ctypes.wstring_at(arg1))
 ```
 * Save it as a file. (e.g. `C:\Users\example\Desktop\see_process.py`)
 
-* execute module `dllhook` with the target program and the script as the arguments and enjoy!
+* Execute module `dllhook` with the target program and the script as the arguments and enjoy!
 ```shell
 python -mdllhook "C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe" C:\Users\example\Desktop\see_process.py
 ```
-
+Console output:
+```text
+[+] Opened a handle to pid: 24308
+[*] Found Python library at: C:\Users\cos\AppData\Local\Programs\Python\Python36-32\python36.dll
+[*] Injecting Python into the process...
+[+] Loaded C:\Users\cos\AppData\Local\Programs\Python\Python36-32\python36.dll with handle 0x69ee0000
+[*] Resolved addresses:
+  - Py_InitializeEx:    0x6a061cc0
+  - PyRun_SimpleString: 0x6a07b1c0
+[*] Initialized Python in the host process
+[*] Waiting for client to connect on \\.\pipe\mayhem
+[*] Client connected on named pipe
+target: 0x75ae4510
+invoke: 0x6c401df0
+callbacker: 0x6620fdc
+<hooked> C:/Program Files (x86)/Adobe/Acrobat Reader DC/Reader/ARH.exe
+<hooked> C:\Program Files (x86)\Common Files\Adobe\ARM\1.0\AdobeARM.exe
+```
 Author
 ===
 [cosine0](https://github.com/cosine0) @github
