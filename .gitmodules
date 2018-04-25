@@ -1,0 +1,3 @@
+[submodule "dllhook/mayhem"]
+	path = dllhook/mayhem
+	url = https://github.com/zeroSteiner/mayhem.git
