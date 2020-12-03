@@ -27,7 +27,7 @@ def main():
     args = parser.parse_args()
 
     exe_path = args.exe
-    script_path = args.python_script
+    script_path = os.path.abspath(args.python_script)
     pid = subprocess.Popen(exe_path).pid
 
     injector_path = os.path.join(SCRIPT_DIR, 'mayhem', 'tools', 'python_injector.py')
@@ -38,12 +38,11 @@ def main():
     else:
         envs['PATH'] = INTERPRETER_DIR
 
-    f = tempfile.NamedTemporaryFile(suffix='.py', delete=False)
-    formatted_script = injected_script.format(working_dir=os.path.abspath(os.curdir),
-                                              import_path=script_path).encode('utf8')
+    with tempfile.NamedTemporaryFile(suffix='.py', delete=False) as f:
+        formatted_script = injected_script.format(working_dir=os.path.abspath(os.curdir),
+                                                  import_path=script_path).encode('utf8')
 
-    f.write(formatted_script)
-    f.close()
+        f.write(formatted_script)
 
     subprocess.Popen([sys.executable, injector_path, f.name, str(pid)],
                      env=envs).wait()
