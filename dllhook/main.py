@@ -11,7 +11,7 @@ INTERPRETER_DIR = os.path.dirname(os.path.abspath(sys.executable))
 injected_script = '''
 import imp
 import time
-import os
+{venv_setup}
 imp.load_source('injected', {import_path!r})
 
 while True:
@@ -38,9 +38,17 @@ def main():
     else:
         envs['PATH'] = INTERPRETER_DIR
 
+    if os.path.basename(INTERPRETER_DIR).lower() == 'scripts':
+        # in venv
+        library_path = os.path.join(os.path.dirname(INTERPRETER_DIR), 'lib', 'site-packages')
+        venv_setup = 'import sys\nsys.path.append({!r})'.format(library_path)
+    else:
+        venv_setup = ''
+
     with tempfile.NamedTemporaryFile(suffix='.py', delete=False) as f:
         formatted_script = injected_script.format(working_dir=os.path.abspath(os.curdir),
-                                                  import_path=script_path).encode('utf8')
+                                                  import_path=script_path,
+                                                  venv_setup=venv_setup).encode('utf8')
 
         f.write(formatted_script)
 
