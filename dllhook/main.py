@@ -9,10 +9,10 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(inspect.getframeinfo(inspect.curren
 INTERPRETER_DIR = os.path.dirname(os.path.abspath(sys.executable))
 
 injected_script = '''
-import imp
 import time
 {venv_setup}
-imp.load_source('injected', {import_path!r})
+with open({script_path!r}) as f:
+    exec(f.read())
 
 while True:
     time.sleep(1)
@@ -47,8 +47,8 @@ def main():
 
     with tempfile.NamedTemporaryFile(suffix='.py', delete=False) as f:
         formatted_script = injected_script.format(working_dir=os.path.abspath(os.curdir),
-                                                  import_path=script_path,
-                                                  venv_setup=venv_setup).encode('utf8')
+                                                  script_path=script_path,
+                                                  venv_setup=venv_setup).encode('utf_8')
 
         f.write(formatted_script)
 
