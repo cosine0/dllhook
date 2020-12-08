@@ -5,7 +5,7 @@ import subprocess
 import sys
 import tempfile
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(inspect.getframeinfo(inspect.currentframe()).filename))
+MAIN_DIR = os.path.dirname(os.path.abspath(inspect.getframeinfo(inspect.currentframe()).filename))
 INTERPRETER_DIR = os.path.dirname(os.path.abspath(sys.executable))
 
 injected_script = '''
@@ -30,7 +30,6 @@ def main():
     script_path = os.path.abspath(args.python_script)
     pid = subprocess.Popen(exe_path).pid
 
-    injector_path = os.path.join(SCRIPT_DIR, 'mayhem', 'tools', 'python_injector.py')
     envs = os.environ.copy()
 
     if 'PATH' in os.environ:
@@ -49,10 +48,8 @@ def main():
         formatted_script = injected_script.format(working_dir=os.path.abspath(os.curdir),
                                                   script_path=script_path,
                                                   venv_setup=venv_setup).encode('utf_8')
-
         f.write(formatted_script)
 
-    subprocess.Popen([sys.executable, injector_path, f.name, str(pid)],
-                     env=envs).wait()
-
+    injector_path = os.path.join(MAIN_DIR, 'mayhem', 'tools', 'python_injector.py')
+    subprocess.Popen([sys.executable, injector_path, f.name, str(pid)], env=envs).wait()
     os.unlink(f.name)
