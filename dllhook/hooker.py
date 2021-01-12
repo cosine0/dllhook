@@ -8,6 +8,7 @@ import re
 import struct
 import time
 import types
+from typing import Union
 
 import capstone
 import cffi
@@ -73,6 +74,21 @@ def install_jump(source, destination):
 
 def message_box(message='continue?', title='debug'):
     user32.MessageBoxW(NULL, (str(message) + '\0').encode('utf16'), (str(title) + '\0').encode('utf16'), 0)
+
+
+def thiscall(function_ptr, this, *args):
+    caller_mem = kernel32.VirtualAlloc(0, 4096, 0x3000, 0x40)
+    print(f'caller_mem: {caller_mem:#x}')
+    grab_ecx_pop_ret = b"\x8b\x4c\x24\x08\x8f\x44\x24\x04\xc3"
+    ctypes.memmove(caller_mem, grab_ecx_pop_ret, len(grab_ecx_pop_ret))
+
+    caller_type = ctypes.WINFUNCTYPE(function_ptr.restype, ctypes.c_void_p,
+                                     ctypes.c_void_p, *(ctypes.c_long for _ in args))
+    caller = caller_type(caller_mem)
+    result = caller(function_ptr, this, *args)
+    kernel32.VirtualFree(caller_mem, 0, 0x00008000)  # MEM_RELEASE
+    print('freed')
+    return result
 
 
 def hook_dll(module_name, target_export_name_or_offset, timeout_seconds=5):
