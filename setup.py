@@ -1,7 +1,7 @@
 import os
 from setuptools import setup, find_packages
 
-version = '0.1'
+version = '0.1.1'
 package_name = "dllhook"
 package_description = """
 Hook x86 dll or executable instruction with python script injecting embedded python interpreter. 
