@@ -35,7 +35,7 @@ def see_process(arg1):
 ```
 * Save it as a file. (e.g. `C:\Users\example\Desktop\see_process.py`)
 
-* Execute module `dllhook` with the target program and the script as the arguments and enjoy!
+* Execute module `dllhook` with the target program and your script as the arguments.
 ```shell
 python -mdllhook "C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe" C:\Users\example\Desktop\see_process.py
 ```
