@@ -148,13 +148,12 @@ def hook_dll(module_name, target_export_name_or_offset, timeout_seconds=5):
         # format code of callbacker_invoker_native in c, based on arguments of callback
         global invoker_count, fetchable_registers, fetchable_general_registers
 
-        stack_arg_count = 0
+        arg_order = 0
         for arg_name in argspec.args:
             if arg_name not in fetchable_registers:
-                stack_arg_count += 1
+                arg_order += 1
 
         invoker_c_asm = []
-        arg_order = stack_arg_count
         for arg_name in reversed(argspec.args):
             # add asm code fetching arg_name
             if arg_name == 'esp':
@@ -208,7 +207,7 @@ int invoker_{count}_addr()
     return (int)invoker_{count};
 }}
 '''.format(count=invoker_count, before_call='\n'.join(invoker_c_asm), callbacker=callbacker_c_address,
-           arg_depth=4 * stack_arg_count, original_asm='\n'.join(original_asm),
+           arg_depth=4 * len(argspec.args), original_asm='\n'.join(original_asm),
            target_resume=target_address + total_length)
 
         # allocate callbacker_invoker_native using cffi
