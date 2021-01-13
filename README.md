@@ -1,11 +1,11 @@
 dllhook
 ===
-dllhook is a tool for hooking window x86 applications. This tools injects embedded Python interpreter (Python DLL)
+dllhook is a tool for hooking Windows x86 applications. This tools injects embedded Python interpreter (Python DLL)
 to the application and executes your script. And also this provides a convenient hooking library to use in your script.  
 This tool uses `mayhem python_injector` as injector.  
 See https://github.com/zeroSteiner/mayhem/blob/master/tools/python_injector.py  
 When you clone this repository, you must also clone submodule `mayhem`.  
-This tool is tested on Python 3.6.
+This tool is tested on Python 3.6-3.9.
 
 Installation
 ===
