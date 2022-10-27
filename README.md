@@ -5,7 +5,7 @@ to the application and executes your script. And also this provides a convenient
 This tool uses `mayhem python_injector` as injector.  
 See https://github.com/zeroSteiner/mayhem/blob/master/tools/python_injector.py  
 When you clone this repository, you must also clone submodule `mayhem`.  
-This tool is tested on Python 3.6-3.9.
+This tool is tested on Python 3.6-3.11.
 
 Installation
 ===
