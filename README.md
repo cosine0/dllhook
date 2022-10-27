@@ -10,14 +10,10 @@ This tool is tested on Python 3.6-3.11.
 Installation
 ===
 Make sure you use 32-bit version of Python.  
-This package requires `capstone`. To install `capstone`, in _Visual Studio Developer Command Prompt_:
-```shell
-python -mpip install capstone
-```
 
 To install dllhook:
 ```shell
-python -mpip install dllhook
+pip install dllhook
 ```
 
 Usage
@@ -35,7 +31,7 @@ def see_process(arg1):
 ```
 * Save it as a file. (e.g. `C:\Users\example\Desktop\see_process.py`)
 
-* Execute module `dllhook` with the target program and your script as the arguments.
+* Execute the module `dllhook` with the target program and your script as the arguments.
 ```shell
 python -mdllhook "C:\Program Files (x86)\Adobe\Acrobat Reader DC\Reader\AcroRd32.exe" C:\Users\example\Desktop\see_process.py
 ```
