@@ -31,7 +31,7 @@ setup(
     version=version,
     description=package_description,
     packages=packages,
-    package_data={'dllhook': package_files(os.path.join('dllhook', 'mayhem'))},
+    package_data={'dllhook': package_files('dllhook/mayhem')},
     license="GPLv3",
     author="cosine0 at github",
     author_email="ksitht@gmail.com",

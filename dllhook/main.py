@@ -4,6 +4,7 @@ import os
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
 
 MAIN_DIR = os.path.dirname(os.path.abspath(inspect.getframeinfo(inspect.currentframe()).filename))
 INTERPRETER_DIR = os.path.dirname(os.path.abspath(sys.executable))
@@ -39,8 +40,9 @@ def main():
 
     if os.path.basename(INTERPRETER_DIR).lower() == 'scripts':
         # in venv
-        library_path = os.path.join(os.path.dirname(INTERPRETER_DIR), 'lib', 'site-packages')
-        venv_setup = 'import sys\nsys.path.append({!r})'.format(library_path)
+        library_path = Path(INTERPRETER_DIR) / 'lib' / 'site-packages'
+        venv_setup = f'import sys\nsys.path.append(' \
+                     f'{library_path.absolute().as_posix()!r})'
     else:
         venv_setup = ''
 
@@ -50,6 +52,7 @@ def main():
                                                   venv_setup=venv_setup).encode('utf_8')
         f.write(formatted_script)
 
-    injector_path = os.path.join(MAIN_DIR, 'mayhem', 'tools', 'python_injector.py')
-    subprocess.Popen([sys.executable, injector_path, f.name, str(pid)], env=envs).wait()
+    injector_path = Path(MAIN_DIR) / 'mayhem' / 'tools' / 'python_injector.py'
+    subprocess.Popen([sys.executable, injector_path, f.name, str(pid)],
+                     env=envs).wait()
     os.unlink(f.name)
