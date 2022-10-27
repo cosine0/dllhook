@@ -1,21 +1,14 @@
 import os
 from setuptools import setup, find_packages
 
-version = '0.1.1'
+version = '0.1.2'
 package_name = "dllhook"
 package_description = """
 Hook x86 dll or executable instruction with python script injecting embedded python interpreter. 
 """.strip()
 
 packages = find_packages()
-install_requires = ['boltons', 'cffi', 'six']
-try:
-    import capstone
-    if capstone.cs_version()[0] < 3:
-        install_requires.append('capstone')
-    del capstone
-except:
-    install_requires.append('capstone')
+install_requires = ['boltons', 'cffi', 'six', 'capstone']
 
 
 def package_files(directory):
@@ -33,7 +26,7 @@ setup(
     packages=packages,
     package_data={'dllhook': package_files('dllhook/mayhem')},
     license="GPLv3",
-    author="cosine0 at github",
+    author="Bumsu Hyeon",
     author_email="ksitht@gmail.com",
     install_requires=install_requires,
     classifiers=[
