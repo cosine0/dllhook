@@ -43,7 +43,7 @@ def main():
 
     if os.path.basename(INTERPRETER_DIR).lower() == 'scripts':
         # in venv
-        library_path = INTERPRETER_DIR / 'lib' / 'site-packages'
+        library_path = INTERPRETER_DIR.parent / 'lib' / 'site-packages'
         venv_setup = f'import sys\nsys.path.append(' \
                      f'{library_path.absolute().as_posix()!r})'
         with open(INTERPRETER_DIR.parent / 'pyvenv.cfg') as f:

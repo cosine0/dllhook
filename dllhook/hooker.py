@@ -8,7 +8,6 @@ import re
 import struct
 import time
 import types
-from typing import Union
 
 import capstone
 import cffi
@@ -138,8 +137,8 @@ def hook_dll(module_name, target_export_name_or_offset, timeout_seconds=5):
             install_jump(decorator_scope_vars['target_address'], decorator_scope_vars['invoker_address'])
 
         # make c wrapper for callbacker
-        argspec = inspect.getargspec(callback)
-        if argspec.varargs is not None or argspec.keywords is not None:
+        argspec = inspect.getfullargspec(callback)
+        if argspec.varargs is not None or argspec.varkw is not None:
             raise ValueError("Varargs are not allowed in 'callback'")
 
         callbacker_c_wrapper = ctypes.CFUNCTYPE(None, *[ctypes.c_uint32] * len(argspec.args))
