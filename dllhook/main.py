@@ -4,9 +4,10 @@ import os
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
 
-MAIN_DIR = os.path.dirname(os.path.abspath(inspect.getframeinfo(inspect.currentframe()).filename))
-INTERPRETER_DIR = os.path.dirname(os.path.abspath(sys.executable))
+MAIN_DIR = Path(inspect.getframeinfo(inspect.currentframe()).filename).parent
+INTERPRETER_DIR = Path(sys.executable).parent
 
 injected_script = '''
 import time
@@ -33,23 +34,36 @@ def main():
     envs = os.environ.copy()
 
     if 'PATH' in os.environ:
-        envs['PATH'] = os.path.pathsep.join([r'C:\windows\syswow64', INTERPRETER_DIR, os.environ['PATH']])
+        envs['PATH'] = os.path.pathsep.join([
+            r'C:\windows\syswow64',
+            INTERPRETER_DIR.absolute().as_posix(),
+            os.environ['PATH']])
     else:
-        envs['PATH'] = INTERPRETER_DIR
+        envs['PATH'] = INTERPRETER_DIR.absolute().as_posix()
 
     if os.path.basename(INTERPRETER_DIR).lower() == 'scripts':
         # in venv
-        library_path = os.path.join(os.path.dirname(INTERPRETER_DIR), 'lib', 'site-packages')
-        venv_setup = 'import sys\nsys.path.append({!r})'.format(library_path)
+        library_path = INTERPRETER_DIR.parent / 'lib' / 'site-packages'
+        venv_setup = f'import sys\nsys.path.append(' \
+                     f'{library_path.absolute().as_posix()!r})'
+        with open(INTERPRETER_DIR.parent / 'pyvenv.cfg') as f:
+            for line in f:
+                if line.startswith('base-prefix'):
+                    envs['PATH'] = os.path.pathsep.join([
+                        line.split('=')[1].strip(),
+                        envs['PATH']])
+                    break
     else:
         venv_setup = ''
 
     with tempfile.NamedTemporaryFile(suffix='.py', delete=False) as f:
-        formatted_script = injected_script.format(working_dir=os.path.abspath(os.curdir),
-                                                  script_path=script_path,
-                                                  venv_setup=venv_setup).encode('utf_8')
+        formatted_script = injected_script.format(
+            working_dir=os.path.abspath(os.curdir),
+            script_path=script_path,
+            venv_setup=venv_setup).encode('utf_8')
         f.write(formatted_script)
 
-    injector_path = os.path.join(MAIN_DIR, 'mayhem', 'tools', 'python_injector.py')
-    subprocess.Popen([sys.executable, injector_path, f.name, str(pid)], env=envs).wait()
+    injector_path = Path(MAIN_DIR) / 'mayhem' / 'tools' / 'python_injector.py'
+    subprocess.Popen([sys.executable, injector_path, f.name, str(pid)],
+                     env=envs).wait()
     os.unlink(f.name)

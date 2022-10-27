@@ -8,7 +8,6 @@ import re
 import struct
 import time
 import types
-from typing import Union
 
 import capstone
 import cffi
@@ -36,16 +35,16 @@ def error_string(errno):
     )
 
     if buffer_pointer.value is None:
-        raise ValueError('Failed to get message for error number {}'.format(errno))
+        raise ValueError(f'Failed to get message for error number {errno}')
     as_string = ctypes.wstring_at(buffer_pointer)
     kernel32.LocalFree(buffer_pointer)
-    return '({:#x}) {}'.format(errno, as_string)
+    return f'({errno:#x}) {as_string}'
 
 
 def get_last_error_string():
     errno = kernel32.GetLastError()
-    as_astring = error_string(errno)
-    return as_astring
+    as_string = error_string(errno)
+    return as_string
 
 
 def read_memory(address, size):
@@ -105,9 +104,12 @@ def hook_dll(module_name, target_export_name_or_offset, timeout_seconds=5):
                         time.sleep(0.1)
                         continue
                     else:
-                        raise ValueError('Unable to find module: {!r}: {}'.format(module_name, error_string(errno)))
+                        raise ValueError('Unable to find module: '
+                                         f'{module_name!r}: '
+                                         f'{error_string(errno)}')
                 else:
-                    raise ValueError('Unable to find module: {!r}: {}'.format(module_name, error_string(errno)))
+                    raise ValueError(f'Unable to find module: {module_name!r}: '
+                                     f'{error_string(errno)}')
             else:
                 break
 
@@ -135,8 +137,8 @@ def hook_dll(module_name, target_export_name_or_offset, timeout_seconds=5):
             install_jump(decorator_scope_vars['target_address'], decorator_scope_vars['invoker_address'])
 
         # make c wrapper for callbacker
-        argspec = inspect.getargspec(callback)
-        if argspec.varargs is not None or argspec.keywords is not None:
+        argspec = inspect.getfullargspec(callback)
+        if argspec.varargs is not None or argspec.varkw is not None:
             raise ValueError("Varargs are not allowed in 'callback'")
 
         callbacker_c_wrapper = ctypes.CFUNCTYPE(None, *[ctypes.c_uint32] * len(argspec.args))
@@ -162,67 +164,69 @@ def hook_dll(module_name, target_export_name_or_offset, timeout_seconds=5):
                 invoker_c_asm.append('push [ebp]')
             elif arg_name in fetchable_general_registers:
                 # arg is another register!
-                invoker_c_asm.append('push {}'.format(arg_name))
+                invoker_c_asm.append(f'push {arg_name}')
             else:
                 # arg is a standard argument!
                 arg_order -= 1
-                invoker_c_asm.append('push [ebp+{}]'.format(4 * arg_order + 8))
+                invoker_c_asm.append(f'push [ebp+{4 * arg_order + 8}]')
+        invoker_c_asm = '\n'.join(invoker_c_asm)
 
         target_head_long = read_memory(target_address, 19)
         cs = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
         original_asm = []
         total_length = 0
         for address, size, mnemonic, op_str in cs.disasm_lite(target_head_long, target_address):
-            disasm = '{} {}'.format(mnemonic, op_str)
-            disasm = re.sub(r'([^:])(\[0x[0-9a-fA-F]+\])', r'\1 ds:\2', disasm)
+            disasm = f'{mnemonic} {op_str}'
+            disasm = re.sub(r'([^:])(\[0x[0-9a-fA-F]+])', r'\1 ds:\2', disasm)
             original_asm.append(disasm)
             total_length = address + size - target_address
             if total_length >= 5:
                 break
+        original_asm = '\n'.join(original_asm)
 
         target_head = target_head_long[:5]
         decorator_scope_vars['target_head'] = target_head
 
-        invoker_c_code = '''
-__declspec(naked) void invoker_{count}()
+        invoker_c_code = f'''
+__declspec(naked) void invoker_{invoker_count}()
 {{
     __asm
     {{
         push ebp
         mov ebp, esp
         pushad
-        {before_call}
-        mov eax, {callbacker:#x}
+        {invoker_c_asm}
+        mov eax, {callbacker_c_address:#x}
         call eax
-        add esp, {arg_depth:#x}
+        add esp, {4 * len(argspec.args):#x}
         popad
         pop ebp
         {original_asm}
-        push {target_resume:#x}
+        push {target_address + total_length:#x}
         ret
     }}
 }}
-int invoker_{count}_addr()
+int invoker_{invoker_count}_addr()
 {{
-    return (int)invoker_{count};
+    return (int)invoker_{invoker_count};
 }}
-'''.format(count=invoker_count, before_call='\n'.join(invoker_c_asm), callbacker=callbacker_c_address,
-           arg_depth=4 * len(argspec.args), original_asm='\n'.join(original_asm),
-           target_resume=target_address + total_length)
+'''
 
         # allocate callbacker_invoker_native using cffi
         ffi = cffi.FFI()
-        ffi.cdef('void invoker_{count}();int invoker_{count}_addr();'.format(count=invoker_count))
+        ffi.cdef(f'void invoker_{invoker_count}();'
+                 f'int invoker_{invoker_count}_addr();')
         invoker_lib = ffi.verify(invoker_c_code)
-        invoker_address = getattr(invoker_lib, 'invoker_{count}_addr'.format(count=invoker_count))()
+        invoker_address = getattr(invoker_lib,
+                                  f'invoker_{invoker_count}_addr')()
         decorator_scope_vars['invoker_address'] = invoker_address
 
         # install jumper to callbacker_invoker_native on target
         install_jump(target_address, invoker_address)
         invoker_count += 1
-        print('target: {:#x}'.format(target_address))
-        print('invoke: {:#x}'.format(invoker_address))
-        print('callbacker: {:#x}'.format(callbacker_c_address))
+        print(f'target: {target_address:#x}')
+        print(f'invoke: {invoker_address:#x}')
+        print(f'callbacker: {callbacker_c_address:#x}')
         return callback  # return original function, not wrapped
 
     return decorator
