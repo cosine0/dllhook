@@ -1,5 +1,6 @@
 dllhook
 ===
+[![PyPI version](https://badge.fury.io/py/dllhook.svg)](https://badge.fury.io/py/dllhook)  
 dllhook is a tool for hooking Windows x86 applications. This tools injects embedded Python interpreter (Python DLL)
 to the application and executes your script. And also this provides a convenient hooking library to use in your script.  
 This tool uses `mayhem python_injector` as injector.  
